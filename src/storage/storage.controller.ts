@@ -1,17 +1,17 @@
 import {
   Body,
-  CacheInterceptor,
   CacheKey,
   Controller,
+  Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
-  UseInterceptors,
 } from '@nestjs/common';
 import { CreateRecordDto } from './dto/createRecordDto';
 import { UpdateRecordDto } from './dto/updateRecordDto';
-import { DbRecord, StorageService } from './storage.service';
+import { StorageService } from './storage.service';
 
 @Controller('storage')
 export class StorageController {
@@ -23,20 +23,25 @@ export class StorageController {
   }
 
   @Get(':id')
-  async getById(@Param('id') id: string) {
-    console.log('123');
-    return this.storageService.getById(parseInt(id));
+  async getById(@Param('id', ParseIntPipe) id: number) {
+    return this.storageService.getById(id);
   }
 
-  @CacheKey('getAll')
   @Get()
   async getAll() {
-    console.log('getAll');
     return this.storageService.getAll();
   }
 
   @Put(':id')
-  async updateById(@Param('id') id: string, @Body() dto: UpdateRecordDto) {
-    return this.storageService.update(parseInt(id), dto);
+  async updateById(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateRecordDto,
+  ) {
+    return this.storageService.update(id, dto);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    this.storageService.deleteById(id);
   }
 }

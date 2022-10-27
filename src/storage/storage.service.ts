@@ -2,7 +2,10 @@ import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { CreateRecordDto } from './dto/createRecordDto';
 import { UpdateRecordDto } from './dto/updateRecordDto';
 import { Cache } from 'cache-manager';
+
 import { StorageRepository } from './storage.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RedisStore } from 'cache-manager-redis-store';
 
 export interface DbRecord {
   id: number;
@@ -14,61 +17,47 @@ export interface DbRecord {
 export class StorageService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectRepository(StorageRepository)
     private storageRepository: StorageRepository,
   ) {}
 
   async create(dto: CreateRecordDto) {
-    return this.storageRepository.createStorage(dto);
-    /* this.cacheManager.set(`storage-${newId}`, newRecord);
-    this.db.push(newRecord);
-    return newRecord; */
+    const newRecord = await this.storageRepository.createStorage(dto);
+    const { id } = newRecord;
+    this.cacheManager.set(`storage-${id}`, newRecord);
+    return newRecord;
   }
 
   async getById(id: number) {
-    console.log('23232');
-    //const recordRedis = await this.cacheManager.get<DbRecord>(`storage-${id}`);
-    /* if (recordRedis) {
-      console.log(console.log('from redis'));
+    const recordRedis = await this.cacheManager.get<Storage>(`storage-${id}`);
+    if (recordRedis) {
       return recordRedis;
-    } */
-    /* const record = this.db.find((value) => value.id === id); */
-    return await this.storageRepository.getByIdStorage(id);
-    /* if (record !== undefined) {
-      await this.cacheManager.set(`storage-${id}`, record);
-      return record;
     }
-    return null; */
+    const record = await this.storageRepository.getByIdStorage(id);
+    this.cacheManager.set(`storage-${id}`, record);
+    return record;
   }
 
   async getAll() {
-    console.log('1');
-    //const db = await this.cacheManager.get<DbRecord[]>('storage-all');
-    return this.storageRepository.getAllStorage();
-    /* console.log('from db');
-    this.cacheManager.set('storage-all', this.db);
-    return this.db; */
+    const keys = await this.cacheManager.store.keys('storage-*');
+    const allData: Storage[] = [];
+    for (const key of keys) {
+      allData.push(await this.cacheManager.get(key));
+    }
+    return allData;
   }
 
-  update(id: number, data: UpdateRecordDto) {
-    /* const findIndex = this.db.findIndex((record) => record.id === id);
-    if (findIndex !== -1) {
-      const newRecord = { ...this.db[findIndex], ...data };
-      this.db[findIndex] = newRecord;
-      this.cacheManager.set(`storage-${id}`, newRecord);
-      return this.db[findIndex];
-    }
-    return null; */
-
-    return this.storageRepository.updateByIdStorage(id, data);
+  async update(id: number, data: UpdateRecordDto) {
+    const updatedRecord = await this.storageRepository.updateByIdStorage(
+      id,
+      data,
+    );
+    this.cacheManager.set(`storage-${id}`, updatedRecord);
+    return updatedRecord;
   }
 
   async deleteById(id: number) {
-    /*  const index = this.db.findIndex((record) => record.id === id);
-    if (index === -1) {
-      return null;
-    }
-    this.cacheManager.del(`storage-${id}`);
-    this.db.splice(index, 1); */
     this.storageRepository.deleteByIdStorage(id);
+    this.cacheManager.del(`storage-${id}`);
   }
 }

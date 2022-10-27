@@ -22,7 +22,7 @@ export const getDbConfig = (): DataSourceOptions => {
     type: 'postgres',
     ssl,
     entities: ['./**/*.entity.js'],
-    migrations: ['./**/migrations/*.js'],
+    migrations: ['./src/migrations/*.js'],
     synchronize: true,
     logging: true,
   };

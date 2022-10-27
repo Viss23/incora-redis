@@ -1,26 +1,38 @@
 import { Injectable } from '@nestjs/common';
-import { AppDataSource } from 'src/config/data-source';
-import { DataSource, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { UpdateRecordDto } from './dto/updateRecordDto';
 import { Storage } from './enteties/storage.entity';
+import { IStorageRepository } from './storage.repository.interface';
 
 @Injectable()
-export class StorageRepository extends Repository<Storage> {
-  constructor(private dataSource: DataSource) {
-    super(Storage, dataSource.createEntityManager());
+export class StorageRepository
+  extends Repository<Storage>
+  implements IStorageRepository
+{
+  constructor(
+    @InjectRepository(Storage)
+    repository: Repository<Storage>,
+  ) {
+    super(repository.target, repository.manager, repository.queryRunner);
   }
 
   async createStorage(data) {
-    console.log('12');
-    return await this.insert(data);
+    const result = await this.createQueryBuilder()
+      .insert()
+      .into(Storage)
+      .values(data)
+      .returning('*')
+      .execute();
+    return result.raw[0];
   }
 
-  async getByIdStorage(id) {
-    return this.find({ where: { id } });
+  async getByIdStorage(id: number) {
+    const a = this.findOne({ where: { id } });
+    return a;
   }
 
   async getAllStorage() {
-    console.log('orm');
     return this.find();
   }
 
@@ -29,6 +41,15 @@ export class StorageRepository extends Repository<Storage> {
   }
 
   async updateByIdStorage(id, data: UpdateRecordDto) {
-    return this.update({ id: id }, data);
+    const result = await this.createQueryBuilder()
+      .update({
+        ...data,
+      })
+      .where({
+        id,
+      })
+      .returning('*')
+      .execute();
+    return result.raw[0];
   }
 }
