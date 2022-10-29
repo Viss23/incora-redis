@@ -9,6 +9,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { CreateRecordDto } from './dto/createRecordDto';
 import { UpdateRecordDto } from './dto/updateRecordDto';
 import { StorageService } from './storage.service';
@@ -30,6 +31,12 @@ export class StorageController {
   @Get()
   async getAll() {
     return this.storageService.getAll();
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Post('/updateDb')
+  async updateDbFromRedis() {
+    return this.storageService.updateDb();
   }
 
   @Put(':id')
