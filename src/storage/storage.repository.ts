@@ -52,4 +52,12 @@ export class StorageRepository
       .execute();
     return result.raw[0];
   }
+
+  async updateAll(data: Storage[]) {
+    const arrOfStorages = data.map((storageData) => this.create(storageData));
+    const result = await Promise.all(arrOfStorages).then(async (storages) => {
+      return await this.save(storages);
+    });
+    return result;
+  }
 }

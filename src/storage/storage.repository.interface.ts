@@ -7,4 +7,5 @@ export interface IStorageRepository {
   getAllStorage(): Promise<Storage[]>;
   deleteByIdStorage(id: number): void;
   updateByIdStorage(id: number, data: UpdateRecordDto): Promise<Storage>;
+  updateAll(data: Storage[]): Promise<Storage[]>;
 }

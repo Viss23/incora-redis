@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { redisStore } from 'cache-manager-redis-store';
 import { StorageModule } from './storage/storage.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { getDbConfig } from './config/db.config';
 
 @Module({
@@ -25,6 +26,7 @@ import { getDbConfig } from './config/db.config';
         }),
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     StorageModule,
   ],
 })
