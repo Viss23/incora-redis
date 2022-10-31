@@ -4,9 +4,10 @@ import { StorageController } from './storage.controller';
 import { StorageRepository } from './storage.repository';
 import { StorageService } from './storage.service';
 import { Storage } from './enteties/storage.entity';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Storage])],
+  imports: [TypeOrmModule.forFeature([Storage]), MailModule],
   controllers: [StorageController],
   providers: [StorageService, StorageRepository],
 })
