@@ -4,6 +4,8 @@ import { redisStore } from 'cache-manager-redis-store';
 import { StorageModule } from './storage/storage.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDbConfig } from './config/db.config';
+import { getMailerConfig } from './config/mailer.config';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -24,6 +26,9 @@ import { getDbConfig } from './config/db.config';
           },
         }),
       isGlobal: true,
+    }),
+    MailerModule.forRootAsync({
+      useFactory: getMailerConfig,
     }),
     StorageModule,
   ],

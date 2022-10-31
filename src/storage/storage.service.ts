@@ -5,7 +5,10 @@ import { Cache } from 'cache-manager';
 
 import { StorageRepository } from './storage.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisStore } from 'cache-manager-redis-store';
+import { path } from 'app-root-path';
+import { ensureDir, writeFile } from 'fs-extra';
+import { format } from 'date-fns';
+import { MailService } from 'src/mail/mail.service';
 
 export interface DbRecord {
   id: number;
@@ -19,6 +22,7 @@ export class StorageService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectRepository(StorageRepository)
     private storageRepository: StorageRepository,
+    private mailService: MailService,
   ) {}
 
   async create(dto: CreateRecordDto) {
@@ -54,6 +58,13 @@ export class StorageService {
     );
     this.cacheManager.set(`storage-${id}`, updatedRecord);
     return updatedRecord;
+  }
+
+  async saveFile(file: Express.Multer.File) {
+    const dateFolder = format(new Date(), 'yyyy-MM-dd');
+    const uploadFolder = `${path}/uploads/${dateFolder}`;
+    await ensureDir(uploadFolder);
+    writeFile(`${uploadFolder}/${file.originalname}`, file.buffer);
   }
 
   async deleteById(id: number) {
